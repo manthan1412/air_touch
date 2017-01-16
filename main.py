@@ -14,6 +14,10 @@ def process(matrix):
 
 
 def initialize():
+    data_file = open('words.txt', 'r+')
+    global words
+    words = data_file.read().split('\n')
+
     with open('prob_matrix.csv') as matrix_file:
         reader = csv.reader(matrix_file, delimiter=',')
         matrix = []
@@ -58,6 +62,16 @@ def get_comb(prob_set, comb_set):
     return comb_set + temp_set
 
 
+def get_word_list(comb_set, word_list, start_value):
+    set_len = len(comb_set)
+    temp_list = []
+    for i in range(start_value, set_len):
+        regex = re.compile("\A("+ comb_set[i] + ").*")
+        temp_list += [m.group(0) for l in word_list for m in [regex.search(l)] if m]
+
+    return set_len, temp_list
+
+
 def predict(combanations):
     input_layer, input_finger = key_input()
     if input_layer == 'q':
@@ -78,13 +92,19 @@ def predict(combanations):
     try:
         probability_set = sorted(probability_set, key=get_key, reverse=True)
     except:
-        pass
+        print "You have to learn me this first"
     combanations = get_comb(probability_set, combanations)
     print combanations
+    global init_value
+    global words
+    init_value, words = get_word_list(combanations, words, init_value)
+    print words
     sets.append(probability_set)
     print sets
     return True, combanations
 
+init_value = 0
+words = []
 headings, prob_matrix, indices = initialize()
 sets = []
 letter_index = 1
