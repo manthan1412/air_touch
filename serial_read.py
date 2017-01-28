@@ -1,17 +1,22 @@
 import serial
-ser = serial.Serial(port='COM1', baudrate=9600, bytesize=serial.EIGHTBITS , parity=serial.PARITY_NONE, timeout=100)
-try:
-    ser.isOpen()
-    print('Serial port is open')
-except:
-    print('Error')
-    exit()
 
-if(ser.isOpen()):
+
+def connect_serial():
     try:
-        while(1):
-            print(ser.readline())
-    except Exception:
+        ser = serial.Serial(port='COM1', baudrate=9600, bytesize=serial.EIGHTBITS , parity=serial.PARITY_NONE, timeout=100)
+        ser.isOpen()
+        print('Serial port is open')
+        return ser
+    except:
         print('Error')
-else:
-    print('COM Port cannot open')
+        return False
+
+
+def read_serial(ser):
+    if ser.isOpen():
+        try:
+            return ser.readline()
+        except Exception:
+            print "Error"
+    else:
+        print('COM Port cannot open')
