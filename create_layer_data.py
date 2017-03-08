@@ -1,9 +1,8 @@
-layers = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm']
 
 layer_data = []
 
 
-def get_layer_data(letters):
+def get_layer_data(layers, letters):
     for letter in letters:
         if letter in layers[0]:
             layer_data.append(0)

@@ -210,7 +210,7 @@ decision
 deep
 defense
 degree
-Democrat
+democrat
 democratic
 describe
 design
@@ -566,7 +566,6 @@ note
 nothing
 notice
 now
-n't
 number
 occur
 of

@@ -1,7 +1,6 @@
 from settings import *
-from connect import connect
+# from connect import connect
 # print data
-connect()
 
 
 def process(matrix):
