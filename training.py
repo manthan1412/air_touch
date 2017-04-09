@@ -100,6 +100,19 @@ def to_csv():
             writer.writerow(occurance_data[i])
         print "csv created successfully"
 
+    with open('layer_limit.csv', 'wb') as limitFile:
+        writer = csv.writer(limitFile, delimiter=',', quoting=csv.QUOTE_NONNUMERIC)
+        fingers = 8
+        for i in range(0, 3):
+            limit_list = []
+            for j in range(0, fingers):
+                limit_list.append(layer_limit[i][j][0])
+                limit_list.append(layer_limit[i][j][1])
+            writer.writerow(limit_list)
+
+        print "Layer limit is stored successfully"
+
+
 
 initialize_layer_limit()
 make_pair()

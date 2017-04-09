@@ -36,6 +36,8 @@ def initialize():
         # print prob_matrix
     i = 2
     pairs = {'LL': i + 0, 'LR': i + 1, 'LM': i + 2, 'LI': i + 3, 'RI': i + 4, 'RM': i + 5, 'RR': i + 6, 'RL': i + 7}
+
+    with open('layer_limit.csv')
     return heading, matrix, pairs
 
 
