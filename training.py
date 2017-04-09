@@ -20,7 +20,7 @@ print layer_data
 ser = connect_serial()
 
 layer_limit = [[], [], []]
-heading = ['LAYER', 'LETTER', "LL", "LR", "LM", "LI", "RI", "RM", "RR", "RL", "Total_Occurances"]
+heading = ['LETTER', 'LAYER', "LL", "LR", "LM", "LI", "RI", "RM", "RR", "RL", "Total_Occurances"]
 occurance_data = []
 i = 0
 str = "qwertyuiopasdfghjklzxcvbnm"
@@ -61,9 +61,9 @@ def update_layer_limit(layer, finger, angle):
     curr_min = layer_limit[layer][finger][0]
     curr_max = layer_limit[layer][finger][1]
     if curr_min > angle:
-        layer_limit[layer][finger][0] = angle
+        layer_limit[layer][finger] = (angle, layer_limit[layer][finger][1])
     if curr_max < angle:
-        layer_limit[layer][finger][1] = angle
+        layer_limit[layer][finger] = (layer_limit[layer][finger][0], angle)
 
 
 def get_layer_limit(layer, finger=None):
@@ -107,25 +107,39 @@ occurance_data = populate_iv(occurance_data)
 # print occurance_data
 loop = True
 i = 0
+first = read_serial(ser)
+print first
+first = read_serial(ser)
+print first
 while loop:
     try:
         data_in = read_serial(ser).split(' ')
-        layer = layer_data.pop()
-        letter = training_data.pop()
-        finger = data_in[0]
-        angle = data_in[1]
+        print 0, data_in
+        layer = layer_data[0]
+        layer_data = layer_data[1:]
+        letter = training_data[0]
+        training_data = training_data[1:]
+        finger = int(data_in[0])
+        angle = int(data_in[1])
         update_occurance_data(letter, finger)
         update_layer_limit(layer, finger, angle)
 
-        while data_in != 'END':
+        while True:
             data_in = read_serial(ser).split(' ')
-            angle = data_in[1]
+            if data_in[0] == 'END\r\n':
+                break
+            angle = int(data_in[1])
             update_layer_limit(layer, finger, angle)
+        print "-------------------"
+        print "letter", letter
+        print layer_limit[0]
+        print layer_limit[1]
+        print layer_limit[2]
+        print "-------------------"
+
     except:
         loop = False
 
-update_occurance_data('q', 0)
-update_occurance_data('w', 1)
-update_occurance_data('q', 1)
+
 print occurance_data
 to_csv()
