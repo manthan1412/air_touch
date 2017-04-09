@@ -8,7 +8,7 @@ while True:
     ch = f.read(1)
     if not ch:
         break
-    if ch.isalpha():
+    if (ch.isalpha()) or (ch == '+'):
         training_data.append(ch.lower())
 
 print training_data
@@ -126,6 +126,9 @@ first = read_serial(ser)
 print first
 while loop:
     try:
+        if training_data[0] == '+':
+            loop = False
+            break
         data_in = read_serial(ser).split(' ')
         print 0, data_in
         layer = layer_data[0]

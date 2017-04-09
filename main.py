@@ -12,6 +12,8 @@ def process(matrix):
         else:
             matrix[i] = float(matrix[i])
 
+layer_limit = [[], [], []]
+
 
 def initialize():
     data_file = open('words.txt', 'r+')
@@ -37,7 +39,17 @@ def initialize():
     i = 2
     pairs = {'LL': i + 0, 'LR': i + 1, 'LM': i + 2, 'LI': i + 3, 'RI': i + 4, 'RM': i + 5, 'RR': i + 6, 'RL': i + 7}
 
-    with open('layer_limit.csv')
+    with open('layer_limit.csv') as limitFile:
+        reader = csv.reader(limitFile, delimiter=',')
+        i = 0
+        fingers = 8
+        for row in reader:
+            for j in range(0, fingers):
+                layer_limit[i].append((row[2*j], row[2*j + 1]))
+            i += 1
+    print layer_limit[0]
+    print layer_limit[1]
+    print layer_limit[2]
     return heading, matrix, pairs
 
 
