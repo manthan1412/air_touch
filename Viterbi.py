@@ -1,11 +1,11 @@
 import csv
 
-def to_csv():
-	with open('probability.csv', 'wb') as csvfile:
+def to_csv(filename, data):
+	with open(filename, 'wb') as csvfile:
 		writer = csv.writer(csvfile, delimiter=',')
 		for i in range(0, 26):
-			writer.writerow(L[i])
-		print "csv created successfully"
+			writer.writerow(data[i])
+		print "csv", filename, "created successfully"
 
 
 def from_csv():
@@ -33,12 +33,13 @@ def probability_to_csv():
 n = 26
 try:
     L = from_csv()
+    # print L
 except:
     L = [[0.0 for x in range(n)] for x in range(n)]
-    to_csv()
+    to_csv('probability.csv', L)
 
 
-string = raw_input().split('\n')
+string = raw_input()
 prob = [[0.0 for x in range(n)] for x in range(n)]
 
 while 1:
@@ -49,16 +50,19 @@ while 1:
             i1 = smooth(i1)
             i2 = smooth(i2)
             L[i1][i2]+=1
-        for y in range(n):
-            for x in range(n):
-                if sum(L[y]) == 0:
-                    denom = 1
-                else:
-                    denom = sum(L[y])
-                prob[y][x] = L[y][x]/float(denom)
+        
         string = raw_input()
     else:
-        to_csv()
+        for y in range(n):
+            if sum(L[y]) == 0:
+                    denom = 1
+            else:
+                denom = sum(L[y])
+            for x in range(n):
+                
+                prob[y][x] = L[y][x]/float(denom)
+        to_csv('probability.csv', L)
+        to_csv('viterbi_probability.csv', prob)
         break
 
-probability_to_csv()
+
