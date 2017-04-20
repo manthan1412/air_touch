@@ -15,7 +15,7 @@ def process(matrix):
 layer_limit = [[], [], []]
 
 def initialize():
-    data_file = open('words.txt', 'rb')
+    data_file = open('airType_wordlist.txt', 'rb')
     global words
     words = data_file.read().split('\r\n')
 
@@ -179,7 +179,7 @@ def predict(combinations, first):
                 previous = letter_buf[l - 2]
                 print (debug) and "previous : ", previous
                 viterbi(last, previous, 'undo')
-                
+            print (debug) and "Current buffer: ", letter_buf
         if l == 1:
             first = True
         return True, combinations, first
