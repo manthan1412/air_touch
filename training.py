@@ -20,7 +20,7 @@ print layer_data
 ser = connect_serial()
 
 layer_limit = [[], [], []]
-heading = ['LETTER', 'LAYER', "LL", "LR", "LM", "LI", "RI", "RM", "RR", "RL", "Total_Occurances"]
+heading = ['LAYER', 'LETTER', "LL", "LR", "LM", "LI", "RI", "RM", "RR", "RL", "Total_Occurances"]
 occurance_data = []
 i = 0
 str = "qwertyuiopasdfghjklzxcvbnm"
@@ -57,13 +57,18 @@ def initialize_layer_limit():
             layer_limit[i].append((2000, 0))
 
 
-def update_layer_limit(layer, finger, angle):
-    curr_min = layer_limit[layer][finger][0]
-    curr_max = layer_limit[layer][finger][1]
-    if curr_min > angle:
-        layer_limit[layer][finger] = (angle, layer_limit[layer][finger][1])
-    if curr_max < angle:
-        layer_limit[layer][finger] = (layer_limit[layer][finger][0], angle)
+def update_layer_limit(layer, finger, min_angle, max_angle):
+    curr_max = layer_limit[layer][finger][0]
+    curr_min = layer_limit[layer][finger][1]
+
+    if curr_min == 0 and curr_max == 2000:
+        layer_limit[layer][finger] = (max_angle, min_angle)
+    else:
+        layer_limit[layer][finger] = ((curr_max + max_angle) / 2, (curr_min + min_angle) / 2)
+        # if curr_min > angle:
+        #     layer_limit[layer][finger] = (curr_max, (angle + curr_min) / 2)
+        # if curr_max < angle:
+        #     layer_limit[layer][finger] = ((angle + curr_max) / 2, curr_min)
 
 
 def get_layer_limit(layer, finger=None):
@@ -89,14 +94,15 @@ def get_layer(letter):
 
 
 def to_csv():
-    with open('occurances.csv', 'wb') as csvfile:
+    with open('occurrences.csv', 'wb') as csvfile:
         writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_ALL)
         writer.writerow(heading)
         for i in range(0, 26):
             letter = str[i]
             layer = get_layer(letter)
-            occurance_data[i].insert(0, layer)
             occurance_data[i].insert(0, letter)
+            occurance_data[i].insert(0, layer)
+
             writer.writerow(occurance_data[i])
         print "csv created successfully"
 
@@ -120,6 +126,7 @@ occurance_data = populate_iv(occurance_data)
 # print occurance_data
 loop = True
 i = 0
+debug = True
 first = read_serial(ser)
 print first
 first = read_serial(ser)
@@ -129,23 +136,33 @@ while loop:
         if training_data[0] == '+':
             loop = False
             break
+        letter = training_data[0]
+        print letter
         data_in = read_serial(ser).split(' ')
         print 0, data_in
         layer = layer_data[0]
         layer_data = layer_data[1:]
-        letter = training_data[0]
+        # letter = training_data[0]
         training_data = training_data[1:]
         finger = int(data_in[0])
         angle = int(data_in[1])
         update_occurance_data(letter, finger)
-        update_layer_limit(layer, finger, angle)
+        # update_layer_limit(layer, finger, angle)
+        min_angle = angle
+        max_angle = angle
 
         while True:
             data_in = read_serial(ser).split(' ')
             if data_in[0] == 'END\r\n':
                 break
             angle = int(data_in[1])
-            update_layer_limit(layer, finger, angle)
+            if angle < min_angle:
+                min_angle = angle
+            elif angle > max_angle:
+                max_angle = angle
+            print debug and angle
+        print debug and min_angle, max_angle
+        update_layer_limit(layer, finger, min_angle, max_angle)
         print "-------------------"
         print "letter", letter
         print layer_limit[0]

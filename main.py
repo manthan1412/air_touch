@@ -19,7 +19,7 @@ def initialize():
     global words
     words = data_file.read().split('\r\n')
 
-    with open('prob_matrix.csv') as matrix_file:
+    with open('occurrences.csv') as matrix_file:
         reader = csv.reader(matrix_file, delimiter=',')
         matrix = []
         first = True
@@ -151,17 +151,17 @@ def get_comb(prob_set, comb_set):
             j = comb_set[i]
             for k in range(0, l):
                 temp_set.append(j + prob_set[k][0])
-    return comb_set + temp_set
+    return temp_set
 
 
-def get_word_list(comb_set, word_list, start_value):
+def get_word_list(comb_set, word_list):
     set_len = len(comb_set)
     temp_list = []
-    for i in range(start_value, set_len):
+    for i in range(0, set_len):
         regex = re.compile("\A("+ comb_set[i] + ").*")
         temp_list += [m.group(0) for l in word_list for m in [regex.search(l)] if m]
 
-    return set_len, temp_list
+    return temp_list
 
 
 def predict(combinations, first):
@@ -214,15 +214,15 @@ def predict(combinations, first):
     first = False
     combinations = get_comb(probability_set, combinations)
     print combinations
-    global init_value
+    # global init_value
     global words
-    init_value, words = get_word_list(combinations, words, init_value)
+    words = get_word_list(combinations, words)
     print words
     sets.append(probability_set)
     print sets, "\n"
     return True, combinations, first
 
-init_value = 0
+# init_value = 0
 words = []
 debug = True
 letter_buf = []
