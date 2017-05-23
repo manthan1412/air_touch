@@ -164,6 +164,22 @@ def get_word_list(comb_set, word_list):
     return temp_list
 
 
+def validate_combinations(comb):
+    l = len(comb)
+    new_comb = []
+    for k in range(l):
+        try:
+            i = comb[k][-1]
+            j = comb[k][-2]
+            print "prev : ", j , "cur : ", i, "comb", L[ascii_mapping[j]][ascii_mapping[i]]
+            if int(L[ascii_mapping[j]][ascii_mapping[i]]) != 0:
+                new_comb.append(comb[k])
+        except:
+            print "error!"
+            return comb
+    return new_comb
+
+
 def predict(combinations, first):
     input_layer, input_finger = key_input()
     if input_finger == 0:
@@ -182,6 +198,20 @@ def predict(combinations, first):
             print (debug) and "Current buffer: ", letter_buf
         if l == 1:
             first = True
+        global sets
+        try:
+            sets.pop()
+        except:
+            sets = []
+        try:
+            length = len(combinations)
+            for j in range(length):
+                combinations[j] = combinations[j][:-1]
+            combinations = list(set(combinations))
+            if len(combinations[0]) == 0:
+                combinations = []
+        except:
+            combinations = []
         return True, combinations, first
     
 
@@ -213,7 +243,9 @@ def predict(combinations, first):
         viterbi(letter_buf[l - 1], letter_buf[l - 2], 'update')
     first = False
     combinations = get_comb(probability_set, combinations)
-    print combinations
+    print (debug) and "All possible combinations : ", combinations
+    combinations = validate_combinations(combinations)
+    print (debug) and "\nValidated combinations : ", combinations
     # global init_value
     global words
     words = get_word_list(combinations, words)
@@ -228,8 +260,15 @@ debug = True
 letter_buf = []
 buffer_length = 4
 n = 26
+ascii_mapping = {}
+ascii_val = 97
+for i in range(0, 26):
+    ascii_mapping[chr(ascii_val)] = i
+    ascii_val += 1
+print ascii_mapping
 headings, prob_matrix, indices = initialize()
 L, prob = initialize_viterbi()
+print L
 
 sets = []
 letter_index = 1
