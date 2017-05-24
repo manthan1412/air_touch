@@ -14,10 +14,14 @@ def process(matrix):
 
 layer_limit = [[], [], []]
 
+
 def initialize():
-    data_file = open('airType_wordlist.txt', 'rb')
-    global words
-    words = data_file.read().split('\r\n')
+    with open('dictionary.csv', 'rb') as data_file:
+        global words, word_counter
+        data = csv.reader(data_file, delimiter=',')
+        for row in data:
+            words.append(row[0])
+            word_counter[row[0]] = row[1]
 
     with open('occurrences.csv') as matrix_file:
         reader = csv.reader(matrix_file, delimiter=',')
@@ -78,7 +82,12 @@ def key_input():
     elif k_input[0] == 'M' or k_input[0] == '1':
         if k_input[1] == 'RL':
             k_input[1] = 1
-
+    if (k_input[0] == 'M' or k_input == '1') and k_input[1] == 1:
+        del record_finger[-1]
+        print (debug) and "Finger Record :", record_finger
+    else:
+        record_finger.append(k_input[1])
+        print (debug) and "Finger Record :", record_finger
     return k_input
 
 
@@ -117,7 +126,6 @@ def viterbi(letter1, letter2, action):
     print (debug) and "Viterbi ", action ,"called"
 
 
-
 def to_csv(filename, data):
     with open(filename, 'wb') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
@@ -135,7 +143,6 @@ def save_viterbi():
             prob[y][x] = L[y][x] / float(den)
     to_csv('probability.csv', L)
     to_csv('viterbi_probability.csv', prob)
-
     print (debug) and "\nViterbi saved"
 
 
@@ -156,10 +163,13 @@ def get_comb(prob_set, comb_set):
 
 def get_word_list(comb_set, word_list):
     set_len = len(comb_set)
+    t_list = []
     temp_list = []
     for i in range(0, set_len):
         regex = re.compile("\A("+ comb_set[i] + ").*")
-        temp_list += [m.group(0) for l in word_list for m in [regex.search(l)] if m]
+        t_list = [m.group(0) for l in word_list for m in [regex.search(l)] if m]
+        t_list = list(reversed(sorted(t_list, key=word_counter.get)))
+        temp_list += t_list
 
     return temp_list
 
@@ -171,7 +181,7 @@ def validate_combinations(comb):
         try:
             i = comb[k][-1]
             j = comb[k][-2]
-            print "prev : ", j , "cur : ", i, "comb", L[ascii_mapping[j]][ascii_mapping[i]]
+            print (debug) and ("prev : ", j , "cur : ", i, "comb", L[ascii_mapping[j]][ascii_mapping[i]])
             if int(L[ascii_mapping[j]][ascii_mapping[i]]) != 0:
                 new_comb.append(comb[k])
         except:
@@ -180,10 +190,28 @@ def validate_combinations(comb):
     return new_comb
 
 
+def save_dictionary():
+    with open('dictionary.csv', 'wb') as dictionary:
+        writer = csv.writer(dictionary, delimiter=',')
+        for i in words:
+            w = []
+            w.append(i)
+            w.append(word_counter[i])
+            writer.writerow(w)
+
+
+def unique_combinations(combinations):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in combinations if not (x in seen or seen_add(x))]
+
+
 def predict(combinations, first):
+    global predicted_words, words
     input_layer, input_finger = key_input()
     if input_finger == 0:
         save_viterbi()
+        save_dictionary()
         return False, combinations, first
     elif input_finger == 1:
         print (debug) and "request for backspace"
@@ -207,11 +235,17 @@ def predict(combinations, first):
             length = len(combinations)
             for j in range(length):
                 combinations[j] = combinations[j][:-1]
-            combinations = list(set(combinations))
+            combinations = unique_combinations(combinations)
+            print (debug) and "new comb : ", combinations
             if len(combinations[0]) == 0:
                 combinations = []
+                predicted_words = list(words)
+            else:
+                predicted_words = get_word_list(combinations, words)
+            print (debug) and "new predicted words : ", predicted_words
         except:
             combinations = []
+            predicted_words = list(words)
         return True, combinations, first
     
 
@@ -247,15 +281,18 @@ def predict(combinations, first):
     combinations = validate_combinations(combinations)
     print (debug) and "\nValidated combinations : ", combinations
     # global init_value
-    global words
-    words = get_word_list(combinations, words)
-    print words
+    # global words
+    predicted_words = get_word_list(combinations, predicted_words)
+    print predicted_words
     sets.append(probability_set)
     print sets, "\n"
     return True, combinations, first
 
 # init_value = 0
 words = []
+word_counter = {}
+word_counter = {}
+record_finger = []
 debug = True
 letter_buf = []
 buffer_length = 4
@@ -275,6 +312,7 @@ letter_index = 1
 repeat = True
 first = True
 comb_set = []
+predicted_words = list(words)
 while repeat:
     repeat, comb_set, first = predict(comb_set, first)
 
