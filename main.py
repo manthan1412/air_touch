@@ -21,7 +21,7 @@ def initialize():
         data = csv.reader(data_file, delimiter=',')
         for row in data:
             words.append(row[0])
-            word_counter[row[0]] = row[1]
+            word_counter[row[0]] = int(row[1])
 
     with open('occurrences.csv') as matrix_file:
         reader = csv.reader(matrix_file, delimiter=',')
@@ -77,11 +77,14 @@ def initialize_viterbi():
 
 def key_input():
     k_input = raw_input().split(' ')
-    if k_input[0] == 'q' or k_input[1] == 'Q':
+    if k_input[0] == 'q' or k_input[0] == 'Q':
         k_input.append(0)
     elif (k_input[0] == 'M' or k_input[0] == '1') and k_input[1] == 'RL':
         if k_input[1] == 'RL':
             k_input[1] = 1
+    elif k_input[0] == 'LTT' or k_input[0] == 'LTL':
+        if len(k_input) == 1:
+            k_input.append(2)
     else:
         record_finger.append(k_input[1])
         print (debug) and "Finger Record :", record_finger
@@ -203,6 +206,17 @@ def unique_combinations(combinations):
     return [x for x in combinations if not (x in seen or seen_add(x))]
 
 
+def reset_all():
+    global current_final_index, final_list, comb_set, predicted_words, sets, record_finger, letter_buf
+    current_final_index = 0
+    final_list = []
+    comb_set = []
+    predicted_words = list(words)
+    sets = []
+    record_finger = []
+    letter_buf = []
+
+
 def predict(combinations, first):
     global predicted_words, words, record_finger
     input_layer, input_finger = key_input()
@@ -251,6 +265,41 @@ def predict(combinations, first):
             predicted_words = list(words)
         return True, combinations, first
     
+    elif input_finger == 2:
+        global final_list, current_final_index
+        if input_layer == 'LTT':
+            l = len(sets)
+            print "Length of the words are : ", l
+            final_list = [y for x, y in enumerate(predicted_words) if len(predicted_words[x]) == l]
+            final_list = final_list[:10]
+            current_final_index = 0
+            print final_list, "\nLong tap left thumb to select the word\n"
+            return True, combinations, first
+
+        elif input_layer == 'LTL':
+            if final_list == []:
+                # l = len(sets)
+                # final_list = [y for x, y in enumerate(predicted_words) if len(predicted_words[x]) == l]
+                # final_list = final_list[:10]
+                final_list = predicted_words
+            current_final_index = 0
+            while input_finger != 'END':
+                try:
+                    current_selected_word = final_list[current_final_index]
+                except:
+                    current_final_index = 0
+                    current_selected_word = final_list[current_final_index]
+                current_final_index += 1
+
+                print "Current selected word : ", current_selected_word
+                print "Keep long pressing left thumb to iterate over the list of possible words : ", final_list
+                print "Leave the left thumb to select the word : ", current_selected_word, "\n"
+                input_layer, input_finger = key_input()
+            word_counter[current_selected_word] += 1
+            reset_all()
+            print "\n selected word : ", current_selected_word, "\nStart typing ahead"
+            return True, [], True
+
 
     index = indices[input_finger]
     head = 19
@@ -294,7 +343,6 @@ def predict(combinations, first):
 # init_value = 0
 words = []
 word_counter = {}
-word_counter = {}
 record_finger = []
 debug = True
 letter_buf = []
@@ -310,6 +358,8 @@ headings, prob_matrix, indices = initialize()
 L, prob = initialize_viterbi()
 print L
 
+final_list = []
+current_final_index = 0
 sets = []
 letter_index = 1
 repeat = True
@@ -318,7 +368,4 @@ comb_set = []
 predicted_words = list(words)
 while repeat:
     repeat, comb_set, first = predict(comb_set, first)
-
-
-
 
