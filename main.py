@@ -79,15 +79,19 @@ def key_input():
     k_input = raw_input().split(' ')
     if k_input[0] == 'q' or k_input[1] == 'Q':
         k_input.append(0)
-    elif k_input[0] == 'M' or k_input[0] == '1':
+    elif (k_input[0] == 'M' or k_input[0] == '1') and k_input[1] == 'RL':
         if k_input[1] == 'RL':
             k_input[1] = 1
-    if (k_input[0] == 'M' or k_input == '1') and k_input[1] == 1:
+    else:
+        record_finger.append(k_input[1])
+        print (debug) and "Finger Record :", record_finger
+
+    """if (k_input[0] == 'M' or k_input == '1') and k_input[1] == 1:
         del record_finger[-1]
         print (debug) and "Finger Record :", record_finger
     else:
         record_finger.append(k_input[1])
-        print (debug) and "Finger Record :", record_finger
+        print (debug) and "Finger Record :", record_finger"""
     return k_input
 
 
@@ -214,7 +218,12 @@ def predict(combinations, first):
         save_dictionary()
         return False, combinations, first
     elif input_finger == 1:
+        '''if letter_buf == []:
+            print "Nothing to delete!!"
+            return True, combinations, first''' #return if nothing is for delete
+        del record_finger[-1]
         print (debug) and "request for backspace"
+        print (debug) and "Removed last finger :", record_finger
         l = len(letter_buf)
         if letter_buf > 0:
             last = letter_buf.pop()
