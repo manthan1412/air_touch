@@ -85,13 +85,6 @@ def key_input():
     else:
         record_finger.append(k_input[1])
         print (debug) and "Finger Record :", record_finger
-
-    """if (k_input[0] == 'M' or k_input == '1') and k_input[1] == 1:
-        del record_finger[-1]
-        print (debug) and "Finger Record :", record_finger
-    else:
-        record_finger.append(k_input[1])
-        print (debug) and "Finger Record :", record_finger"""
     return k_input
 
 
@@ -211,24 +204,25 @@ def unique_combinations(combinations):
 
 
 def predict(combinations, first):
-    global predicted_words, words
+    global predicted_words, words, record_finger
     input_layer, input_finger = key_input()
     if input_finger == 0:
         save_viterbi()
         save_dictionary()
         return False, combinations, first
     elif input_finger == 1:
-        '''if letter_buf == []:
-            print "Nothing to delete!!"
-            return True, combinations, first''' #return if nothing is for delete
-        del record_finger[-1]
+        last_finger = None
+        try:
+            last_finger = record_finger.pop()
+        except:
+            record_finger = []
         print (debug) and "request for backspace"
-        print (debug) and "Removed last finger :", record_finger
+        print (debug) and "Removed last finger :", last_finger
         l = len(letter_buf)
-        if letter_buf > 0:
+        if l > 0:
             last = letter_buf.pop()
             print (debug) and "Last : ", last
-            if letter_buf > 1:
+            if l > 1:
                 previous = letter_buf[l - 2]
                 print (debug) and "previous : ", previous
                 viterbi(last, previous, 'undo')
