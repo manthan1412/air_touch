@@ -13,6 +13,8 @@ int fsr7Pin = 5;
 int fsr8Pin = 4;
 int flag;
 int fsrReading;      // the analog reading from the FSR resistor divider
+int lt = 2;
+boolean checker;
 
 void setup()
 {
@@ -28,7 +30,7 @@ void setup()
 
 void loop()
 {
-    int sensor1,sensor2,sensor3,sensor4,sensor5,sensor6,sensor7,sensor8, deg1,deg2,deg3,deg4,deg5,deg6,deg7,deg8,fsr1Reading,fsr2Reading,fsr3Reading,fsr4Reading,fsr5Reading,fsr6Reading,fsr7Reading,fsr8Reading, f1 = 1 , f2 = 1, f3 = 1, f4 = 1, f5 = 1, f6 = 1, f7 = 1, f8 = 1;
+    int sensor1,sensor2,sensor3,sensor4,sensor5,sensor6,sensor7,sensor8, deg1,deg2,deg3,deg4,deg5,deg6,deg7,deg8,fsr1Reading,fsr2Reading,fsr3Reading,fsr4Reading,fsr5Reading,fsr6Reading,fsr7Reading,fsr8Reading, f1 = 1 , f2 = 1, f3 = 1, f4 = 1, f5 = 1, f6 = 1, f7 = 1, f8 = 1, lefthumb;
 
     // read the voltage from the voltage divider (sensor plus resistor)
     sensor1 = analogRead(0);
@@ -68,7 +70,7 @@ void loop()
     fsr6Reading = digitalRead(fsr6Pin);
     fsr7Reading = digitalRead(fsr7Pin);
     fsr8Reading = digitalRead(fsr8Pin);
-  
+	lefthumb = digitalRead(lt);
 
   
     //Serial.println(fsr1Reading);
@@ -209,7 +211,27 @@ void loop()
     Serial.println("END");
     flag = 1;
   }
-
+	if (lefthumb <= 0)
+  {
+    delay(500);
+    while (digitalRead(lt) <= 0)
+    {
+      Serial.println("LTL");
+      delay(1000);
+      checker = true;
+      //lefthumb = digitalRead(lt)
+      }
+      if (checker != true)
+      {
+        Serial.println("LTT");
+        }
+      if (checker == true)
+      {
+        Serial.println("LTL END");
+        checker = false;
+        }
+      
+      }
     // pause before taking the next reading
     delay(100); 
 }
