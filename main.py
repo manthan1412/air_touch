@@ -1,4 +1,5 @@
 from settings import *
+from serial_read import connect_serial, read_serial
 # from connect import connect
 # print data
 
@@ -48,7 +49,7 @@ def initialize():
         fingers = 8
         for row in reader:
             for j in range(0, fingers):
-                layer_limit[i].append((row[2*j], row[2*j + 1]))
+                layer_limit[i].append((int(row[2*j]), int(row[2*j + 1])))
             i += 1
 
 
@@ -74,21 +75,59 @@ def initialize_viterbi():
     prob = [[0.0 for x in range(n)] for x in range(n)]
     return L, prob
 
+layer_mapping = {0: 'U', 1: 'M', 2: 'L'}
+finger_mapping = {0: 'LL', 1: 'LR', 2: 'LM', 3: 'LI', 4: 'RI', 5: 'RM', 6: 'RR', 7: 'RL'}
+
+
+def get_layer(finger, bending_angle):
+    for k in range(3):
+        print layer_limit[k][finger]
+        if bending_angle < layer_limit[k][finger][0] and bending_angle >= layer_limit[k][finger][1]:
+            data = []
+            data.append(layer_mapping[k])
+            data.append(finger_mapping[finger])
+            print (debug) and "layer : ", layer_mapping[k]
+            return data
+    # return data[0], finger
+
 
 def key_input():
-    k_input = raw_input().split(' ')
-    if k_input[0] == 'q' or k_input[0] == 'Q':
-        k_input.append(0)
-    elif (k_input[0] == 'M' or k_input[0] == '1') and k_input[1] == 'RL':
-        if k_input[1] == 'RL':
-            k_input[1] = 1
-    elif k_input[0] == 'LTT' or k_input[0] == 'LTL':
-        if len(k_input) == 1:
-            k_input.append(2)
+    global ser, manual
+    if manual:
+        k_input = raw_input().split(' ')
+        if k_input[0] == 'q' or k_input[0] == 'Q':
+            k_input.append(0)
+        elif (k_input[0] == 'M' or k_input[0] == '1') and k_input[1] == 'RL':
+            if k_input[1] == 'RL':
+                k_input[1] = 1
+        elif k_input[0] == 'LTT' or k_input[0] == 'LTL':
+            if len(k_input) == 1:
+                k_input.append(2)
+        else:
+            record_finger.append(k_input[1])
+            print (debug) and "Finger Record :", record_finger
+        return k_input
     else:
-        record_finger.append(k_input[1])
-        print (debug) and "Finger Record :", record_finger
-    return k_input
+        k_input = read_serial(ser).split(' ')
+        print (debug) and k_input
+        if k_input[0] == 'LTT\r\n' or k_input[0] == 'LTL\r\n' or k_input[0] == 'LTL':
+            if len(k_input) == 1:
+                k_input[0] = k_input[0].strip('\r\n')
+                print (debug) and k_input
+                k_input.append(2)
+            return k_input
+        else:
+            bending_angle = 0
+            count = 0
+            finger = int(k_input[0])
+            while k_input[0] != 'END\r\n' :
+                bending_angle += int(k_input[1])
+                count += 1
+                k_input = read_serial(ser).split(' ')
+            bending_angle /= count
+            print (debug) and finger, bending_angle
+            return get_layer(finger, bending_angle)
+
 
 
 def get_key(item):
@@ -168,7 +207,7 @@ def get_word_list(comb_set, word_list):
     for i in range(0, set_len):
         regex = re.compile("\A("+ comb_set[i] + ").*")
         t_list = [m.group(0) for l in word_list for m in [regex.search(l)] if m]
-        t_list = list(reversed(sorted(t_list, key=word_counter.get)))
+        t_list = list(sorted(t_list, key=word_counter.get, reverse=True))
         temp_list += t_list
 
     return temp_list
@@ -219,7 +258,11 @@ def reset_all():
 
 def predict(combinations, first):
     global predicted_words, words, record_finger
-    input_layer, input_finger = key_input()
+    try:
+        input_layer, input_finger = key_input()
+    except:
+        print "Some error "
+        return True, combinations, first
     if input_finger == 0:
         save_viterbi()
         save_dictionary()
@@ -283,7 +326,11 @@ def predict(combinations, first):
                 # final_list = final_list[:10]
                 final_list = predicted_words
             current_final_index = 0
-            while input_finger != 'END':
+            while input_finger != 'END' and input_finger != 'END\r\n':
+
+                if final_list == []:
+                    print "No possible words predicted"
+                    break
                 try:
                     current_selected_word = final_list[current_final_index]
                 except:
@@ -342,6 +389,7 @@ def predict(combinations, first):
 
 # init_value = 0
 words = []
+manual = False
 word_counter = {}
 record_finger = []
 debug = True
@@ -357,6 +405,12 @@ print ascii_mapping
 headings, prob_matrix, indices = initialize()
 L, prob = initialize_viterbi()
 print L
+ser = None
+if not manual:
+    global ser
+    ser = connect_serial()
+    print read_serial(ser)
+    print read_serial(ser)
 
 final_list = []
 current_final_index = 0

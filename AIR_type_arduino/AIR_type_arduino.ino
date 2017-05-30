@@ -46,15 +46,16 @@ void loop()
     // convert the voltage reading to inches
     // the first two numbers are the sensor values for straight (768) and bent (853)
     // the second two numbers are the degree readings we'll map that to (0 to 90 degrees)
-    deg1 = map(sensor1, 350,650 , 0, 1024);
-    deg2 = map(sensor2, 261,544 , 0, 1024);
-    deg3 = map(sensor3, 300,600 , 0, 1024);
-    deg4 = map(sensor4, 300,500 , 0, 1024);
-    deg5 = map(sensor5, 350,550 , 0, 1024);
-    deg6 = map(sensor6, 500,800 , 0, 1024);
-    deg7 = map(sensor7, 350,650 , 0, 1024);
-    deg8 = map(sensor8, 300,600 , 0, 1024);
-    
+    deg1 = map(sensor1, 261,800 , 0, 2000);
+    deg2 = map(sensor2, 261,800 , 0, 2000);
+    deg3 = map(sensor3, 261,800 , 0, 2000);
+    deg4 = map(sensor4, 261,800 , 0, 2000);
+    deg5 = map(sensor5, 261,800 , 0, 2000);
+    deg6 = map(sensor6, 261,800 , 0, 2000);
+    deg7 = map(sensor8, 261,800 , 0, 2000);
+    deg8 = map(sensor7, 261,800 , 0, 2000);
+    //Serial.println(sensor7);
+    //Serial.println(deg7);
 
     // print out the result
     //Serial.print("analog input: ");
