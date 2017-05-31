@@ -80,24 +80,38 @@ finger_mapping = {0: 'LL', 1: 'LR', 2: 'LM', 3: 'LI', 4: 'RI', 5: 'RM', 6: 'RR',
 
 
 def get_layer(finger, bending_angle):
+    data = []
     for k in range(3):
         print layer_limit[k][finger]
-        if bending_angle < layer_limit[k][finger][0] and bending_angle >= layer_limit[k][finger][1]:
-            data = []
-            data.append(layer_mapping[k])
-            data.append(finger_mapping[finger])
+        if bending_angle <= layer_limit[k][finger][0] and bending_angle >= layer_limit[k][finger][1]:
+            l_data = []
+            l_data.append(layer_mapping[k])
+            l_data.append(finger_mapping[finger])
+            data.append(l_data)
             print (debug) and "layer : ", layer_mapping[k]
-            return data
-    # return data[0], finger
+    return data
+
+
+def approx_value(finger, bending_angle):
+    layer_finger_range_list = []
+    for k in range(3):
+        layer_finger_range_list.append(layer_limit[k][finger][0])
+        layer_finger_range_list.append(layer_limit[k][finger][1])
+    approx_angle = min(layer_finger_range_list, key=lambda x:abs(x-bending_angle))
+    layer_data = get_layer(finger, approx_angle)
+    if len(layer_data) > 1:
+        return layer_data, True
+    else:
+        return layer_data, False
 
 
 def key_input():
-    global ser, manual
+    global ser, manual, finger, bending_angle
     if manual:
         k_input = raw_input().split(' ')
         if k_input[0] == 'q' or k_input[0] == 'Q':
             k_input.append(0)
-        elif (k_input[0] == 'M' or k_input[0] == '1') and k_input[1] == 'RL':
+        elif (k_input[0] == 'M' or k_input[0] == '1') or k_input[1] == 'RL':
             if k_input[1] == 'RL':
                 k_input[1] = 1
         elif k_input[0] == 'LTT' or k_input[0] == 'LTL':
@@ -106,7 +120,9 @@ def key_input():
         else:
             record_finger.append(k_input[1])
             print (debug) and "Finger Record :", record_finger
-        return k_input
+        t = []
+        t.append(k_input)
+        return t, False
     else:
         k_input = read_serial(ser).split(' ')
         print (debug) and k_input
@@ -115,7 +131,18 @@ def key_input():
                 k_input[0] = k_input[0].strip('\r\n')
                 print (debug) and k_input
                 k_input.append(2)
-            return k_input
+            t = []
+            t.append(k_input)
+            return t, False
+        elif k_input[0] == '7':
+            finger = int(k_input[0])
+            while k_input[0] != 'END\r\n':
+                k_input = read_serial(ser).split(' ')
+            t = []
+            k_input[0] = finger_mapping[finger]
+            k_input.append(1)
+            t.append(k_input)
+            return t, False
         else:
             bending_angle = 0
             count = 0
@@ -126,8 +153,11 @@ def key_input():
                 k_input = read_serial(ser).split(' ')
             bending_angle /= count
             print (debug) and finger, bending_angle
-            return get_layer(finger, bending_angle)
-
+            layer_data = get_layer(finger, bending_angle)
+            if len(layer_data) > 1:
+                return layer_data, True
+            else:
+                return layer_data, False
 
 
 def get_key(item):
@@ -220,7 +250,7 @@ def validate_combinations(comb):
         try:
             i = comb[k][-1]
             j = comb[k][-2]
-            print (debug) and ("prev : ", j , "cur : ", i, "comb", L[ascii_mapping[j]][ascii_mapping[i]])
+            #print (debug) and ("prev : ", j , "cur : ", i, "comb", L[ascii_mapping[j]][ascii_mapping[i]])
             if int(L[ascii_mapping[j]][ascii_mapping[i]]) != 0:
                 new_comb.append(comb[k])
         except:
@@ -259,10 +289,22 @@ def reset_all():
 def predict(combinations, first):
     global predicted_words, words, record_finger
     try:
-        input_layer, input_finger = key_input()
+        # if not manual:
+        input_data, multi_layer = key_input()
+        input_finger = input_data[0][1]
+        input_layer = input_data[0][0]
+        # else:
+        #     input_layer, input_finger = key_input()
     except:
-        print "Some error "
-        return True, combinations, first
+        # if not manual:
+        input_data, multi_layer = approx_value(finger, bending_angle)
+        input_finger = input_data[0][1]
+        input_layer = input_data[0][0]
+        # else:
+        #     input_data, input_finger = approx_value(finger, bending_angle)
+        if not input_layer and input_finger:
+            print "Some error "
+            return True, combinations, first
     if input_finger == 0:
         save_viterbi()
         save_dictionary()
@@ -341,27 +383,35 @@ def predict(combinations, first):
                 print "Current selected word : ", current_selected_word
                 print "Keep long pressing left thumb to iterate over the list of possible words : ", final_list
                 print "Leave the left thumb to select the word : ", current_selected_word, "\n"
-                input_layer, input_finger = key_input()
+                input_data, multi_layer = key_input()
+                input_layer = input_data[0][0]
+                input_finger = input_data[0][1]
             word_counter[current_selected_word] += 1
             reset_all()
             print "\n selected word : ", current_selected_word, "\nStart typing ahead"
             return True, [], True
 
-
-    index = indices[input_finger]
-    head = 19
-    tail = 26
-    if input_layer == '0' or input_layer == 'U':
-        head = 0
-        tail = 10
-    elif input_layer == '1' or input_layer == 'M':
-        head = 10
-        tail = 19
+    l = len(input_data)
+    if multi_layer:
+        print (debug) and "Found multi layer : ", l
     probability_set = []
+    for i in range(0, l):
+        index = indices[input_finger]
+        head = 19
+        tail = 26
+        input_layer = input_data[i][0]
+        print (debug) and "input layer ", l, "is : ", input_layer
+        if input_layer == '0' or input_layer == 'U':
+            head = 0
+            tail = 10
+        elif input_layer == '1' or input_layer == 'M':
+            head = 10
+            tail = 19
 
-    for i in range(head, tail):
-        if prob_matrix[i][index] > 0:
-            probability_set.append((prob_matrix[i][letter_index], prob_matrix[i][index]))
+
+        for i in range(head, tail):
+            if prob_matrix[i][index] > 0:
+                probability_set.append((prob_matrix[i][letter_index], prob_matrix[i][index]))
     try:
         probability_set = sorted(probability_set, key=get_key, reverse=True)
         print (debug) and "\nProbability set : ", probability_set
@@ -407,7 +457,6 @@ L, prob = initialize_viterbi()
 print L
 ser = None
 if not manual:
-    global ser
     ser = connect_serial()
     print read_serial(ser)
     print read_serial(ser)
