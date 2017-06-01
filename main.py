@@ -15,8 +15,9 @@ def process(matrix):
 
 layer_limit = [[], [], []]
 
-
+#Initialize prerequisites for Model
 def initialize():
+    global heading
     with open('dictionary.csv', 'rb') as data_file:
         global words, word_counter
         data = csv.reader(data_file, delimiter=',')
@@ -106,7 +107,7 @@ def approx_value(finger, bending_angle):
 
 
 def key_input():
-    global ser, manual, finger, bending_angle
+    global ser, manual, finger, bending_angle, record_finger
     if manual:
         k_input = raw_input().split(' ')
         if k_input[0] == 'q' or k_input[0] == 'Q':
@@ -153,6 +154,9 @@ def key_input():
                 k_input = read_serial(ser).split(' ')
             bending_angle /= count
             print (debug) and finger, bending_angle
+            #print finger_mapping[finger]
+            record_finger.append(finger_mapping[finger])
+            print (debug) and "Finger Record :", record_finger
             layer_data = get_layer(finger, bending_angle)
             if len(layer_data) > 1:
                 return layer_data, True
@@ -380,6 +384,7 @@ def predict(combinations, first):
                     current_selected_word = final_list[current_final_index]
                 current_final_index += 1
 
+
                 print "Current selected word : ", current_selected_word
                 print "Keep long pressing left thumb to iterate over the list of possible words : ", final_list
                 print "Leave the left thumb to select the word : ", current_selected_word, "\n"
@@ -387,8 +392,22 @@ def predict(combinations, first):
                 input_layer = input_data[0][0]
                 input_finger = input_data[0][1]
             word_counter[current_selected_word] += 1
+            pair = {'LL': 2 + 0, 'LR': 2 + 1, 'LM': 2 + 2, 'LI': 2 + 3, 'RI': 2 + 4, 'RM': 2 + 5, 'RR': 2 + 6, 'RL': 2 + 7}
+            number_of_finger = len(record_finger)
+            for k in range(0,number_of_finger):
+                    for d in range(1,27):
+                        if current_selected_word[k] == prob_matrix[d][1]:
+                            prob_matrix[d][pair[record_finger[k]]] += 1
+                            prob_matrix[d][-1] += 1
+                            break
+
+            save_dictionary()
+            with open("occurrences.csv", "wb") as f:
+                writer = csv.writer(f)
+                writer.writerow(headings)
+                writer.writerows(prob_matrix)
             reset_all()
-            print "\n selected word : ", current_selected_word, "\nStart typing ahead"
+            print "\n selected word : ", current_selected_word, "\n Dictionary has been updated","\nStart typing ahead"
             return True, [], True
 
     l = len(input_data)

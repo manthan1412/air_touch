@@ -54,7 +54,7 @@ def update_occurance_data(letter, finger):
 def initialize_layer_limit():
     for i in range(0, 3):
         for j in range(0, 8):
-            layer_limit[i].append((2000, 0))
+            layer_limit[i].append((0, 2000))
 
 
 def update_layer_limit(layer, finger, min_angle, max_angle):
