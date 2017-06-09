@@ -3,7 +3,7 @@ import serial
 
 def connect_serial():
     try:
-        ser = serial.Serial(port='COM1', baudrate=9600, bytesize=serial.EIGHTBITS , parity=serial.PARITY_NONE, timeout=100)
+        ser = serial.Serial(port='COM1', baudrate=9600, bytesize=serial.EIGHTBITS , parity=serial.PARITY_NONE, timeout=1000)
         ser.isOpen()
         print('Serial port is open')
         return ser
