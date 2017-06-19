@@ -459,7 +459,7 @@ def predict(combinations, first):
 
 # init_value = 0
 words = []
-manual = True
+manual = False
 word_counter = {}
 record_finger = []
 debug = True

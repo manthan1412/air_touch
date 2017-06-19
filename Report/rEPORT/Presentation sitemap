@@ -1,0 +1,43 @@
+Introduction
+	-Motivation
+Demo
+Design	
+	Hardware Design
+		-Sensor Selection
+		-CPU selection
+		-Integration
+	Software Design
+		-Arduino code
+		-Data Aqu tool
+		-Difficulty in glovrs design
+Flowchart
+Model Training
+	-Limitation and Assumption
+	-Training set
+	-Matrix L
+	-Matrix F
+	-Matrix T
+	-Dictionary
+Model Prediction
+	-Limitation and Assumption
+	-Predicting layer info
+	-Predicting set of alphabets
+	-Removing invalid combination
+	-Finding word in dictionary
+Learning
+	-Update Matrix F
+	-Update Matrix T
+	-Update Dictionary
+Evaluation
+	-Better layer prediction
+	-Better set of alphabets prediction
+	-Better word prediction
+Future Work
+	-Noun prediction
+	-Better hardware - increase input data quality
+	-Wireless - Improvise application
+	-Adding IMU sensor module -Helps to track hand movement -Application in AR,VR
+		-Gesture based controls
+		-robotic arm
+-https://techcrunch.com/2017/02/09/oculus-gloves/
+
